@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:task_manager/agenttaskform.dart';
 import 'package:task_manager/signuppage.dart';
 import 'package:task_manager/taskdeatilscreen.dart';
+import 'package:task_manager/taskedit.dart';
 import 'package:task_manager/taskform.dart';
 import 'package:task_manager/uploadfile.dart';
 
@@ -141,7 +142,6 @@ class _ManagerScreenState extends State<ManagerScreen> {
                                       items: <String>[
                                         'ALL',
                                         'Assigned',
-                                        'Pending',
                                         'Completed',
                                       ].map((String value) {
                                         return DropdownMenuItem<String>(
@@ -269,19 +269,19 @@ class _ManagerScreenState extends State<ManagerScreen> {
                                                     ),
                                                   ),
                                                 );
-                                              } else if (value == 'Pending') {
+                                              } else if (value == 'Edit') {
+                                                // Update the status field
                                                 Navigator.push(
                                                   context,
                                                   MaterialPageRoute(
                                                     builder: (context) =>
-                                                        Agenttaskform(
+                                                        EditTask(
                                                       taskNo: task['Task_no'],
                                                       customerName:
                                                           task['Customer name'],
                                                       address: task['Address'],
                                                       phoneNumber:
                                                           task['Phone'],
-                                                      remark: task['Remark'],
                                                     ),
                                                   ),
                                                 );
@@ -311,8 +311,8 @@ class _ManagerScreenState extends State<ManagerScreen> {
                                               ),
                                               const PopupMenuDivider(),
                                               const PopupMenuItem<String>(
-                                                value: 'Pending',
-                                                child: Text('Pending'),
+                                                value: 'Edit',
+                                                child: Text('Edit'),
                                               ),
                                               const PopupMenuDivider(),
                                               const PopupMenuItem<String>(

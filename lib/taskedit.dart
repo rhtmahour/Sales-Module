@@ -183,10 +183,8 @@ class _EditTaskState extends State<EditTask> {
               _customerNameController.clear();
               _addressController.clear();
               _phoneController.clear();
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => const AgentScreen()),
-              );
+              // Navigate back to the previous screen
+              Navigator.pop(context);
             },
             shape: RoundedRectangleBorder(
               side: const BorderSide(color: Colors.black),
