@@ -1,16 +1,18 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:task_manager/adminalltask.dart';
 import 'package:task_manager/memberregister.dart';
 import 'package:task_manager/signuppage.dart';
 import 'package:task_manager/userdetail.dart';
 
 class AdminScreen extends StatelessWidget {
-  const AdminScreen({super.key});
+  const AdminScreen({Key? key});
+
   Future<void> _signOut(BuildContext context) async {
     return showDialog<void>(
       context: context,
-      barrierDismissible: false, // user must tap button for close dialog
+      barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Confirmation'),
@@ -18,7 +20,7 @@ class AdminScreen extends StatelessWidget {
           actions: <Widget>[
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop(); // Dismiss the dialog
+                Navigator.of(context).pop();
               },
               child: const Text('No'),
             ),
@@ -55,6 +57,7 @@ class AdminScreen extends StatelessWidget {
           IconButton(
             onPressed: () => _signOut(context),
             icon: const Icon(Icons.logout),
+            color: Colors.white,
           ),
         ],
       ),
@@ -65,8 +68,86 @@ class AdminScreen extends StatelessWidget {
             scrollDirection: Axis.horizontal,
             child: Row(
               children: [
-                for (int i = 1; i < 11; i++)
-                  Container(
+                ...List.generate(
+                  10,
+                  (index) => GestureDetector(
+                    onTap: () async {
+                      print('Tapped on Task ${index + 1}');
+                      try {
+                        QuerySnapshot querySnapshot = await FirebaseFirestore
+                            .instance
+                            .collection('task')
+                            .where('Task_no', isEqualTo: (index + 1).toString())
+                            .get();
+                        if (querySnapshot.docs.isNotEmpty) {
+                          Map<String, dynamic> taskData =
+                              querySnapshot.docs.first.data()
+                                  as Map<String, dynamic>;
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                title: Text('Task Details - Task ${index + 1}'),
+                                content: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    for (var entry in taskData.entries)
+                                      Text('${entry.key}: ${entry.value}'),
+                                  ],
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                    },
+                                    child: const Text('Close'),
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                        } else {
+                          print('No task found for Task ${index + 1}');
+                        }
+                      } catch (e) {
+                        print('Error: $e');
+                      }
+                    },
+                    child: Container(
+                      height: 90,
+                      width: 90,
+                      padding: const EdgeInsets.all(5),
+                      margin: const EdgeInsets.only(
+                        top: 8,
+                        bottom: 8,
+                        left: 20,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[200],
+                        borderRadius: BorderRadius.circular(10),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.2),
+                            spreadRadius: 1,
+                            blurRadius: 8,
+                          ),
+                        ],
+                      ),
+                      child: Center(child: Text("Task ${index + 1}")),
+                    ),
+                  ),
+                ),
+                GestureDetector(
+                  onTap: () {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const Adminalltask(),
+                      ),
+                    );
+                  },
+                  child: Container(
                     height: 90,
                     width: 90,
                     padding: const EdgeInsets.all(5),
@@ -76,7 +157,7 @@ class AdminScreen extends StatelessWidget {
                       left: 20,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.grey[100],
+                      color: Colors.grey[200],
                       borderRadius: BorderRadius.circular(10),
                       boxShadow: [
                         BoxShadow(
@@ -86,8 +167,9 @@ class AdminScreen extends StatelessWidget {
                         ),
                       ],
                     ),
-                    child: Center(child: Text("Task $i")),
+                    child: const Center(child: Text("See All")),
                   ),
+                ),
               ],
             ),
           ),
@@ -106,7 +188,6 @@ class AdminScreen extends StatelessWidget {
                     itemBuilder: (context, index) {
                       DocumentSnapshot user = snapshot.data!.docs[index];
                       return GestureDetector(
-                        // Add return statement here
                         onTap: () {
                           Navigator.push(
                             context,
@@ -122,6 +203,7 @@ class AdminScreen extends StatelessWidget {
                         },
                         child: Container(
                           decoration: BoxDecoration(
+                            color: Colors.grey[200],
                             boxShadow: [
                               BoxShadow(
                                 color: Colors.white.withOpacity(0.2),
@@ -145,7 +227,6 @@ class AdminScreen extends StatelessWidget {
                                 children: [
                                   Text('Email: ${user['email'] ?? ''}'),
                                   Text('Role: ${user['role'] ?? ''}'),
-                                  // You can add more user details here if needed
                                 ],
                               ),
                               PopupMenuButton<PopupMenuEntry<dynamic>>(
@@ -169,7 +250,7 @@ class AdminScreen extends StatelessWidget {
                                       },
                                     ),
                                   ),
-                                  const PopupMenuDivider(), // Use PopupMenuDivider instead of Divider
+                                  const PopupMenuDivider(),
                                   PopupMenuItem(
                                     child: ListTile(
                                       title: const Text('Delete'),
@@ -184,26 +265,17 @@ class AdminScreen extends StatelessWidget {
                                               actions: <Widget>[
                                                 TextButton(
                                                   onPressed: () {
-                                                    // Cancel delete
                                                     Navigator.of(context).pop();
                                                   },
                                                   child: const Text("No"),
                                                 ),
                                                 TextButton(
                                                   onPressed: () async {
-                                                    // Confirm delete
-                                                    // Delete user from Firebase Authentication
-                                                    /*await FirebaseAuth
-                                  .instance.currentUser!
-                                  .delete();*/
-
-                                                    // Delete user data from Cloud Firestore
                                                     await FirebaseFirestore
                                                         .instance
                                                         .collection('users')
                                                         .doc(user.id)
                                                         .delete();
-
                                                     Navigator.of(context).pop();
                                                   },
                                                   child: const Text("Yes"),

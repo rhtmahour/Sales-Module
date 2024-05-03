@@ -34,7 +34,11 @@ class _AgentDetailScreenState extends State<AgentDetailScreen> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.blue,
-        title: const Text('Agent Details'),
+        centerTitle: true,
+        title: const Text(
+          'Agent Details',
+          style: TextStyle(color: Colors.white),
+        ),
       ),
       body: ListView(
         padding: const EdgeInsets.all(16.0),
@@ -89,6 +93,13 @@ class _AgentDetailScreenState extends State<AgentDetailScreen> {
                                   Text(
                                       'Agent Name: ${user['Agent name'] ?? ''}'),
                                   Text('Task Number: ${user['Task_no'] ?? ''}'),
+                                  Text(
+                                      'AssignedDateTime: ${user['AssignedDateTime'] ?? ''}'),
+                                  Text(
+                                    'Status: ${user['status'] ?? ''}',
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.bold),
+                                  ),
                                   // You can add more user details here if needed
                                 ],
                               ),

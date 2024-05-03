@@ -1,114 +1,120 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:intl/intl.dart';
-import 'package:task_manager/managerdashboard.dart';
-//import 'package:csv/csv.dart';
-//import 'package:file_picker/file_picker.dart';
+import 'package:task_manager/agentdashboard.dart';
 
-class TaskForm extends StatefulWidget {
-  final File? file;
-  final List<List<dynamic>>? csvData;
+class Agenttaskform extends StatefulWidget {
+  final String? taskNo;
+  final String? customerName;
+  final String? address;
+  final String? phoneNumber;
+  String? remark;
 
-  const TaskForm({super.key, this.file, this.csvData});
-
+  Agenttaskform({
+    Key? key,
+    this.taskNo,
+    this.customerName,
+    this.address,
+    this.phoneNumber,
+    this.remark,
+  }) : super(key: key);
   @override
-  State<TaskForm> createState() => _TaskFormState();
+  State<Agenttaskform> createState() => _AgenttaskformState();
 }
 
-class _TaskFormState extends State<TaskForm> {
+class _AgenttaskformState extends State<Agenttaskform> {
   TextEditingController _dateController = TextEditingController();
-  TextEditingController _tasknoController = TextEditingController();
+  TextEditingController _taskNumberController = TextEditingController();
   TextEditingController _customerNameController = TextEditingController();
   TextEditingController _locationController = TextEditingController();
   TextEditingController _phoneNumberController = TextEditingController();
   TextEditingController _remarkController = TextEditingController();
   TextEditingController _statuscontroller = TextEditingController();
-  TimeOfDay? _selectedTime;
   String? selectedUser;
-  String? selectedTaskNumber;
-  List<String> users = [];
-  List<String> taskNumbers = [];
-
-  Future<void> fetchUsers() async {
-    try {
-      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-          .collection('users')
-          .where('role', isEqualTo: 'AGENT')
-          .get();
-
-      setState(() {
-        users =
-            querySnapshot.docs.map((doc) => doc['name'].toString()).toList();
-      });
-    } catch (e) {
-      print('Error fetching users: $e');
-    }
-  }
-
-  Future<void> saveFormDataToFirestore() async {
-    try {
-      // Check if the task number already exists in Firestore
-      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-          .collection('task')
-          .where('Task_no', isEqualTo: selectedTaskNumber)
-          .get();
-
-      if (querySnapshot.docs.isNotEmpty) {
-        // Show a message if the task number is already assigned
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Task number already assigned')),
-        );
-        return; // Exit the function
-      }
-
-      DateTime currentDateTime = DateTime.now();
-      String formattedDateTime =
-          DateFormat('dd-MM-yyyy HH:mm:ss').format(currentDateTime);
-
-      // Get the status text from the controller
-      String statusText = _statuscontroller.text;
-
-      // Update the 'status' field with the statusText variable
-      await FirebaseFirestore.instance.collection('task').add({
-        'Agent name': selectedUser,
-        'Date': _dateController.text,
-        'Time': _selectedTime != null ? _selectedTime!.format(context) : null,
-        'Task_no': selectedTaskNumber,
-        'Customer name': _customerNameController.text,
-        'Address': _locationController.text,
-        'Phone': _phoneNumberController.text,
-        'Remark': _remarkController.text,
-        'AssignedDateTime': formattedDateTime,
-        'status': statusText,
-      });
-
-      // Show a success message or navigate to a new screen
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Task submitted successfully')),
-      );
-    } catch (e) {
-      print('Error saving form data: $e');
-      // Show an error message
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to submit form')),
-      );
-    }
-  }
+  String? selectedTaskNumber; // Added variable for selected Task Number
+  TimeOfDay? _selectedTime;
+  List<String> agentNames = [];
 
   @override
   void initState() {
     super.initState();
-    fetchUsers();
+    fetchAgents();
+  }
+
+  Future<void> updateTaskInFirestore() async {
+    try {
+      // Query to find the document with matching Task_no
+      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+          .collection('task')
+          .where('Task_no', isEqualTo: widget.taskNo)
+          .get();
+
+      // Check if a document with matching Task_no was found
+      if (querySnapshot.docs.isNotEmpty) {
+        // Get the document ID of the matched document
+        String docId = querySnapshot.docs.first.id;
+
+        // Update the document with the new data
+        await FirebaseFirestore.instance.collection('task').doc(docId).update({
+          'Date': _dateController.text,
+          'Time': _selectedTime != null ? _selectedTime!.format(context) : null,
+          'Customer name': _customerNameController.text.isNotEmpty
+              ? _customerNameController.text
+              : widget.customerName ?? '',
+          'Address': _locationController.text.isNotEmpty
+              ? _locationController.text
+              : widget.address ?? '',
+          'Phone': _phoneNumberController.text.isNotEmpty
+              ? _phoneNumberController.text
+              : widget.phoneNumber ?? '',
+          'Agent name': selectedUser, // Update the agent's name
+          'status': _statuscontroller.text,
+          'Remarks': FieldValue.arrayUnion([_remarkController.text]),
+          // Add the new remark to the 'Remarks' array in the document
+          // Update the other fields as needed
+          //'DateUpdated': DateFormat('dd-MM-yyyy').format(DateTime.now()),
+          //'TimeUpdated': DateFormat('HH:mm:ss').format(DateTime.now()),
+        });
+
+        // Show a success message or navigate to a new screen
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Task updated successfully')),
+        );
+      } else {
+        // If no document with matching Task_no was found
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text('No task found with the specified Task_no')),
+        );
+      }
+    } catch (e) {
+      print('Error updating task: $e');
+      // Show an error message
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to update task')),
+      );
+    }
+  }
+
+  Future<void> fetchAgents() async {
+    try {
+      QuerySnapshot querySnapshot =
+          await FirebaseFirestore.instance.collection('users').get();
+
+      agentNames =
+          querySnapshot.docs.map((doc) => doc['name'].toString()).toList();
+    } catch (e) {
+      print('Error fetching agents: $e');
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    //print("taskNo: ${widget.taskNo}");
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.blue,
         title: const Text(
-          'Task Assign Form',
+          'Agent Task Assign Form',
           style: TextStyle(color: Colors.white),
         ),
         centerTitle: true,
@@ -121,8 +127,7 @@ class _TaskFormState extends State<TaskForm> {
             child: Container(
               decoration: BoxDecoration(
                 border: Border.all(color: Colors.black),
-                borderRadius:
-                    BorderRadius.circular(10.0), // Adjust the radius as needed
+                borderRadius: BorderRadius.circular(10.0),
               ),
               child: ListTile(
                 title: Text(
@@ -134,7 +139,25 @@ class _TaskFormState extends State<TaskForm> {
               ),
             ),
           ),
-          //Date and Time set manually for the Agent with the calendar icon
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Container(
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.black),
+                borderRadius: BorderRadius.circular(10.0),
+              ),
+              child: TextFormField(
+                initialValue: widget.taskNo,
+                readOnly: true,
+                decoration: const InputDecoration(
+                  border: InputBorder.none,
+                  hintText: "Task Number",
+                  hintStyle: TextStyle(fontSize: 15),
+                  contentPadding: EdgeInsets.symmetric(horizontal: 10.0),
+                ),
+              ),
+            ),
+          ),
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Row(
@@ -242,47 +265,18 @@ class _TaskFormState extends State<TaskForm> {
                 border: Border.all(color: Colors.black),
                 borderRadius: BorderRadius.circular(10.0),
               ),
-              child: DropdownButtonFormField<String>(
-                value: selectedTaskNumber,
-                onChanged: (value) {
-                  setState(() {
-                    selectedTaskNumber = value;
-
-                    // Find the row in csvData that corresponds to the selected task number
-                    List<dynamic>? selectedRow = widget.csvData?.firstWhere(
-                      (row) => row[0].toString() == value,
-                      orElse: () => [],
-                    );
-
-                    // Autofill the other fields if a row is found
-                    if (selectedRow != null) {
-                      _customerNameController.text =
-                          selectedRow[2].toString(); // Customer name
-                      _locationController.text =
-                          selectedRow[4].toString(); // Address
-                      _phoneNumberController.text =
-                          selectedRow[3].toString(); // Phone number
-                      _remarkController.text =
-                          selectedRow[7].toString(); // Remark
-                    }
-                  });
-                },
-                items: widget.csvData?.skip(1).map((row) {
-                  return DropdownMenuItem<String>(
-                    value: row[0].toString(),
-                    child: Text(row[0].toString()),
-                  );
-                }).toList(),
+              child: TextFormField(
+                initialValue: widget.customerName,
+                // Remove readOnly property to allow editing
                 decoration: const InputDecoration(
                   border: InputBorder.none,
-                  hintText: "Select Task Number",
+                  hintText: "Customer name",
                   hintStyle: TextStyle(fontSize: 15),
                   contentPadding: EdgeInsets.symmetric(horizontal: 10.0),
                 ),
               ),
             ),
           ),
-
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Container(
@@ -291,35 +285,12 @@ class _TaskFormState extends State<TaskForm> {
                 borderRadius: BorderRadius.circular(10.0),
               ),
               child: TextFormField(
-                controller: _customerNameController, // Add controller here
-                readOnly: true, // Make the text field read-only
-                decoration: const InputDecoration(
-                  border: InputBorder.none,
-                  hintText: "Customer name",
-                  hintStyle: TextStyle(
-                    fontSize: 15,
-                  ),
-                  contentPadding: EdgeInsets.symmetric(horizontal: 10.0),
-                ),
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Container(
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.black),
-                borderRadius: BorderRadius.circular(10.0),
-              ),
-              child: TextFormField(
-                controller: _locationController, // Add controller here
-                readOnly: true, // Make the text field read-only
+                initialValue: widget.address,
+                // Remove readOnly property to allow editing
                 decoration: const InputDecoration(
                   border: InputBorder.none,
                   hintText: "Address",
-                  hintStyle: TextStyle(
-                    fontSize: 15,
-                  ),
+                  hintStyle: TextStyle(fontSize: 15),
                   contentPadding: EdgeInsets.symmetric(horizontal: 10.0),
                 ),
               ),
@@ -333,15 +304,12 @@ class _TaskFormState extends State<TaskForm> {
                 borderRadius: BorderRadius.circular(10.0),
               ),
               child: TextFormField(
-                controller: _phoneNumberController, // Add controller here
-                readOnly: true, // Make the text field read-only
-                keyboardType: TextInputType.phone,
+                initialValue: widget.phoneNumber,
+                // Remove readOnly property to allow editing
                 decoration: const InputDecoration(
                   border: InputBorder.none,
                   hintText: "phone number",
-                  hintStyle: TextStyle(
-                    fontSize: 15,
-                  ),
+                  hintStyle: TextStyle(fontSize: 15),
                   contentPadding: EdgeInsets.symmetric(horizontal: 10.0),
                 ),
               ),
@@ -355,17 +323,16 @@ class _TaskFormState extends State<TaskForm> {
                 borderRadius: BorderRadius.circular(10.0),
               ),
               child: TextFormField(
-                controller: _remarkController, // Add controller here
-                readOnly: true, // Make the text field read-only
-                maxLines: null, // Allows unlimited lines of text
+                controller: _remarkController,
+                onChanged: (value) {
+                  // Update the _remarkController's text value as the user types
+                  _remarkController.text = value;
+                },
                 decoration: const InputDecoration(
                   border: InputBorder.none,
                   hintText: "Remark",
-                  hintStyle: TextStyle(
-                    fontSize: 15,
-                  ),
-                  contentPadding:
-                      EdgeInsets.symmetric(horizontal: 10.0, vertical: 10.0),
+                  hintStyle: TextStyle(fontSize: 15),
+                  contentPadding: EdgeInsets.symmetric(horizontal: 10.0),
                 ),
               ),
             ),
@@ -399,7 +366,7 @@ class _TaskFormState extends State<TaskForm> {
             color: Colors.blue,
             onPressed: () async {
               // Save form data to Firestore
-              await saveFormDataToFirestore();
+              await updateTaskInFirestore();
 
               // Optionally, you can reset the form fields here
               _dateController.clear();
@@ -416,7 +383,7 @@ class _TaskFormState extends State<TaskForm> {
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const ManagerScreen(),
+                  builder: (context) => const AgentScreen(),
                 ),
               );
             },
@@ -440,10 +407,8 @@ class _TaskFormState extends State<TaskForm> {
 
   void showUsersList(BuildContext context) async {
     try {
-      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-          .collection('users')
-          .where('role', isEqualTo: 'AGENT')
-          .get();
+      QuerySnapshot querySnapshot =
+          await FirebaseFirestore.instance.collection('users').get();
 
       List<String> agents =
           querySnapshot.docs.map((doc) => doc['name'].toString()).toList();

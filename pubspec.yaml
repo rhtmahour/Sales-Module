@@ -43,6 +43,9 @@ dependencies:
   file_picker: ^8.0.0+1
   fluttertoast: ^8.2.4
   csv: ^6.0.0
+  image_picker: ^1.0.8
+  firebase_storage: ^11.7.1
+  intl: ^0.19.0
 
 dev_dependencies:
   flutter_test:
@@ -70,6 +73,7 @@ flutter:
   assets:
      - assets/images/task1.png
      - assets/images/signup.png
+     - assets/images/user_profile.png
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

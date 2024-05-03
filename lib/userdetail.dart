@@ -19,7 +19,11 @@ class UserDetailsScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.blue,
-        title: const Text('User Details'),
+        centerTitle: true,
+        title: const Text(
+          'User Details',
+          style: TextStyle(color: Colors.white),
+        ),
       ),
       body: ListView(
         padding: const EdgeInsets.all(16.0),

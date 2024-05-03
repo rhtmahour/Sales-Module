@@ -37,7 +37,24 @@ class _MemberRegisterState extends State<MemberRegister> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.blue[100],
+      appBar: AppBar(
+        backgroundColor: Colors.blue,
+        title: const Text(
+          "Register Members",
+          style: TextStyle(color: Colors.white),
+        ),
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const AdminScreen()),
+            );
+          },
+        ),
+      ),
+      backgroundColor: Colors.blue[50],
       body: SingleChildScrollView(
         child: Column(
           children: <Widget>[
@@ -54,19 +71,6 @@ class _MemberRegisterState extends State<MemberRegister> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        const SizedBox(
-                          height: 30,
-                        ),
-                        const Text(
-                          "Register Memebers",
-                          style: TextStyle(
-                            fontWeight: FontWeight.w300,
-                            fontSize: 30,
-                          ),
-                        ),
-                        const SizedBox(
-                          height: 10,
-                        ),
                         const SizedBox(
                           height: 50,
                         ),

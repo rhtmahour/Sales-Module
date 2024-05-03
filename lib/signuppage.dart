@@ -324,7 +324,7 @@ class _SignUpPageState extends State<SignUpPage> {
                                 AlwaysStoppedAnimation<Color>(Colors.white),
                           )
                         : const Text(
-                            "SignIn",
+                            "Signin",
                             style: TextStyle(
                               fontWeight: FontWeight.w400,
                               fontSize: 22,

@@ -1,7 +1,10 @@
 import 'dart:io'; // Add this import statement to use the File class
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:task_manager/agentdetail.dart';
+import 'package:task_manager/agenttaskform.dart';
+import 'package:task_manager/signuppage.dart';
+import 'package:task_manager/taskdeatilscreen.dart';
 import 'package:task_manager/taskform.dart';
 import 'package:task_manager/uploadfile.dart';
 
@@ -17,19 +20,61 @@ class ManagerScreen extends StatefulWidget {
 
 class _ManagerScreenState extends State<ManagerScreen> {
   late Future<List<DocumentSnapshot>> _usersFuture;
+  String? userName;
+  String? userPhone;
+  String? _selectedFilter = 'ALL';
 
   @override
   void initState() {
     super.initState();
-    _usersFuture = getUsers();
+    fetchUserData();
   }
 
-  Future<List<DocumentSnapshot>> getUsers() async {
-    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+  Future<void> fetchUserData() async {
+    String email = FirebaseAuth.instance.currentUser!.email!;
+    DocumentSnapshot userData = await FirebaseFirestore.instance
         .collection('users')
-        .where('role', isEqualTo: 'AGENT')
-        .get();
-    return querySnapshot.docs;
+        .where('email', isEqualTo: email)
+        .get()
+        .then((snapshot) => snapshot.docs.first);
+
+    setState(() {
+      userName = userData['name'];
+      userPhone = userData['phone'];
+    });
+  }
+
+  Future<void> _signOut(BuildContext context) async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Confirmation'),
+          content: const Text('Are you sure you want to sign out?'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('No'),
+            ),
+            TextButton(
+              onPressed: () async {
+                await FirebaseAuth.instance.signOut();
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const SignUpPage(),
+                  ),
+                );
+              },
+              child: const Text('Yes'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -43,152 +88,325 @@ class _ManagerScreenState extends State<ManagerScreen> {
           style: TextStyle(color: Colors.white),
         ),
         automaticallyImplyLeading: false,
+        actions: [
+          IconButton(
+            onPressed: () => _signOut(context),
+            icon: const Icon(Icons.logout),
+            color: Colors.white,
+          ),
+        ],
       ),
       body: Column(
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(25.0),
-                child: MaterialButton(
-                  minWidth: 150,
-                  height: 50,
-                  color: Colors.blue,
-                  onPressed: () {
-                    // Add your upload file logic here
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const FileUploadScreen(),
-                      ),
-                    );
-                  },
-                  shape: RoundedRectangleBorder(
-                    side: const BorderSide(color: Colors.black),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: const Text(
-                    "Upload File",
-                    style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 16,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(25.0),
-                child: MaterialButton(
-                  minWidth: 150,
-                  height: 50,
-                  color: Colors.blue,
-                  onPressed: () {
-                    // Add your task assign logic here
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => TaskForm(
-                          file: widget.file,
-                          csvData: widget.csvData,
-                        ),
-                      ),
-                    );
-                  },
-                  shape: RoundedRectangleBorder(
-                    side: const BorderSide(color: Colors.black),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: const Text(
-                    "Task Assign",
-                    style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 16,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
+          //const SizedBox(height: 20),
           Expanded(
-            child: FutureBuilder<List<DocumentSnapshot>>(
-              future: _usersFuture,
+            child: StreamBuilder<DocumentSnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('users')
+                  .doc(FirebaseAuth.instance.currentUser!.uid)
+                  .snapshots(),
               builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                } else if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
+                if (!snapshot.hasData) {
+                  return const Center(
+                    child: CircularProgressIndicator(),
+                  );
                 } else {
-                  List<DocumentSnapshot> users = snapshot.data!;
-                  return GridView.builder(
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 3,
-                      mainAxisSpacing: 8.0,
-                      crossAxisSpacing: 8.0,
-                    ),
-                    itemCount: users.length,
-                    itemBuilder: (context, index) {
-                      String name = users[index]['name'];
-                      return GestureDetector(
-                        onTap: () async {
-                          // Find the agent with the selected name
-                          DocumentSnapshot agent = users.firstWhere(
-                            (user) => user['name'] == name,
-                            orElse: () => throw Exception(
-                                'Agent not found'), // Throw an exception if agent is not found
-                          );
+                  DocumentSnapshot userSnapshot = snapshot.data!;
+                  if (userSnapshot['email'] ==
+                          FirebaseAuth.instance.currentUser!.email &&
+                      userSnapshot['name'] == userName) {
+                    return ListView(
+                      children: [
+                        const SizedBox(height: 16.0),
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              border: const Border(
+                                top: BorderSide(color: Colors.black),
+                                left: BorderSide(color: Colors.black),
+                                right: BorderSide(color: Colors.black),
+                                bottom: BorderSide(color: Colors.black),
+                              ),
+                              borderRadius: BorderRadius.circular(8.0),
+                            ),
+                            constraints: const BoxConstraints(maxWidth: 200.0),
+                            child: Row(
+                              children: [
+                                const SizedBox(width: 8.0),
+                                Expanded(
+                                  child: DropdownButtonHideUnderline(
+                                    child: DropdownButton<String>(
+                                      value: _selectedFilter,
+                                      items: <String>[
+                                        'ALL',
+                                        'Assigned',
+                                        'Pending',
+                                        'Completed',
+                                      ].map((String value) {
+                                        return DropdownMenuItem<String>(
+                                          value: value,
+                                          child: Padding(
+                                            padding: const EdgeInsets.only(
+                                                right: 8.0),
+                                            child: Text(value),
+                                          ),
+                                        );
+                                      }).toList(),
+                                      onChanged: (String? newValue) {
+                                        setState(() {
+                                          _selectedFilter = newValue;
+                                        });
+                                      },
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 8.0),
+                              ],
+                            ),
+                          ),
+                        ),
+                        StreamBuilder<QuerySnapshot>(
+                          stream: FirebaseFirestore.instance
+                              .collection('task')
+                              .where('Agent name', isEqualTo: userName)
+                              .snapshots(),
+                          builder: (context, snapshot) {
+                            if (!snapshot.hasData) {
+                              return const Center(
+                                child: CircularProgressIndicator(),
+                              );
+                            } else {
+                              List<DocumentSnapshot> tasks =
+                                  snapshot.data!.docs;
 
-                          // Fetch the agent's details from Firestore
-                          DocumentSnapshot agentSnapshot =
-                              await FirebaseFirestore.instance
-                                  .collection('users')
-                                  .doc(agent.id)
-                                  .get();
+                              List<DocumentSnapshot> filteredTasks =
+                                  _selectedFilter == 'ALL'
+                                      ? tasks
+                                      : tasks.where((task) {
+                                          final status = task['status'];
+                                          return status != null &&
+                                              status.toLowerCase() ==
+                                                  _selectedFilter!
+                                                      .toLowerCase();
+                                        }).toList();
 
-                          // Navigate to the AgentDetailScreen with the fetched details
-                          Navigator.push(
+                              return Column(
+                                children:
+                                    filteredTasks.map((DocumentSnapshot task) {
+                                  return GestureDetector(
+                                    onTap: () {
+                                      //onTap logic to navigate to the screen
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              TaskDetailScreen(
+                                            taskId: task.id,
+                                            taskData: task.data()
+                                                as Map<String, dynamic>,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey[200],
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color:
+                                                Colors.white.withOpacity(0.2),
+                                            spreadRadius: 1,
+                                            blurRadius: 8,
+                                          ),
+                                        ],
+                                        border: Border.all(color: Colors.black),
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      padding: const EdgeInsets.all(10),
+                                      margin: const EdgeInsets.symmetric(
+                                        vertical: 5,
+                                        horizontal: 10,
+                                      ),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                  'Manager Name: ${task['Agent name'] ?? ''}'),
+                                              Text(
+                                                  'Task Number: ${task['Task_no'] ?? ''}'),
+                                              Text(
+                                                  'AssignedDateTime: ${task['AssignedDateTime'] ?? ''}'),
+                                              Text(
+                                                'Status: ${task['status'] ?? ''}',
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          PopupMenuButton<String>(
+                                            key: UniqueKey(),
+                                            onSelected: (value) {
+                                              if (value == 'Assigned') {
+                                                Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        Agenttaskform(
+                                                      taskNo: task['Task_no'],
+                                                      customerName:
+                                                          task['Customer name'],
+                                                      address: task['Address'],
+                                                      phoneNumber:
+                                                          task['Phone'],
+                                                      remark: task['Remark'],
+                                                    ),
+                                                  ),
+                                                );
+                                              } else if (value == 'Pending') {
+                                                Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        Agenttaskform(
+                                                      taskNo: task['Task_no'],
+                                                      customerName:
+                                                          task['Customer name'],
+                                                      address: task['Address'],
+                                                      phoneNumber:
+                                                          task['Phone'],
+                                                      remark: task['Remark'],
+                                                    ),
+                                                  ),
+                                                );
+                                              } else if (value == 'Completed') {
+                                                FirebaseFirestore.instance
+                                                    .collection('task')
+                                                    .doc(task.id)
+                                                    .update({
+                                                  'status': 'Completed'
+                                                });
+
+                                                ScaffoldMessenger.of(context)
+                                                    .showSnackBar(
+                                                  const SnackBar(
+                                                    content: Text(
+                                                        'Task status updated to Completed'),
+                                                  ),
+                                                );
+                                              }
+                                            },
+                                            itemBuilder:
+                                                (BuildContext context) =>
+                                                    <PopupMenuEntry<String>>[
+                                              const PopupMenuItem<String>(
+                                                value: 'Completed',
+                                                child: Text('Completed'),
+                                              ),
+                                              const PopupMenuDivider(),
+                                              const PopupMenuItem<String>(
+                                                value: 'Pending',
+                                                child: Text('Pending'),
+                                              ),
+                                              const PopupMenuDivider(),
+                                              const PopupMenuItem<String>(
+                                                value: 'Assigned',
+                                                child: Text('Assigned'),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                }).toList(),
+                              );
+                            }
+                          },
+                        ),
+                      ],
+                    );
+                  } else {
+                    return Container();
+                  }
+                }
+              },
+            ),
+          ),
+          Center(
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(25.0),
+                      child: MaterialButton(
+                        minWidth: 150,
+                        height: 50,
+                        color: Colors.blue,
+                        onPressed: () {
+                          Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => AgentDetailScreen(
-                                agentName: agentSnapshot['name'] ?? '',
-                                agentEmail: agentSnapshot['email'] ?? '',
-                                agentPhone: agentSnapshot['phone'] ?? '',
-                                agentRole: agentSnapshot['role'] ?? '',
+                              builder: (context) => const FileUploadScreen(),
+                            ),
+                          );
+                        },
+                        shape: RoundedRectangleBorder(
+                          side: const BorderSide(color: Colors.black),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: const Text(
+                          "Upload File",
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 16,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(25.0),
+                      child: MaterialButton(
+                        minWidth: 150,
+                        height: 50,
+                        color: Colors.blue,
+                        onPressed: () {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => TaskForm(
+                                file: widget.file,
+                                csvData: widget.csvData,
                               ),
                             ),
                           );
                         },
-                        child: Container(
-                          height: 30,
-                          width: 30,
-                          padding: const EdgeInsets.all(5),
-                          margin: const EdgeInsets.only(
-                            top: 8,
-                            bottom: 8,
-                            left: 10,
-                            right: 10,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.grey[200],
-                            borderRadius: BorderRadius.circular(10),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.2),
-                                spreadRadius: 1,
-                                blurRadius: 8,
-                              ),
-                            ],
-                          ),
-                          child: Center(child: Text(name)),
+                        shape: RoundedRectangleBorder(
+                          side: const BorderSide(color: Colors.black),
+                          borderRadius: BorderRadius.circular(20),
                         ),
-                      );
-                    },
-                  );
-                }
-              },
+                        child: const Text(
+                          "Task Assign",
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 16,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
         ],
