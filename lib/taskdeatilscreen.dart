@@ -35,6 +35,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
           _buildDetailItem('Address', widget.taskData['Address']),
           _buildDetailItem('Date', widget.taskData['Date']),
           _buildDetailItem('Time', widget.taskData['Time']),
+          _buildDetailItem('status', widget.taskData['status']),
           _buildDetailItem('Remark', widget.taskData['Remark']),
           _buildDetailItem('Remarks', widget.taskData['Remarks']),
         ],

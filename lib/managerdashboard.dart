@@ -13,9 +13,10 @@ class ManagerScreen extends StatefulWidget {
   final File? file;
   final List<List<dynamic>>? csvData;
 
-  const ManagerScreen({Key? key, this.file, this.csvData}) : super(key: key);
+  const ManagerScreen({super.key, this.file, this.csvData});
 
   @override
+  // ignore: library_private_types_in_public_api
   _ManagerScreenState createState() => _ManagerScreenState();
 }
 
@@ -81,6 +82,7 @@ class _ManagerScreenState extends State<ManagerScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.blue[100],
       appBar: AppBar(
         backgroundColor: Colors.blue,
         centerTitle: true,
@@ -90,10 +92,27 @@ class _ManagerScreenState extends State<ManagerScreen> {
         ),
         automaticallyImplyLeading: false,
         actions: [
-          IconButton(
-            onPressed: () => _signOut(context),
-            icon: const Icon(Icons.logout),
-            color: Colors.white,
+          Padding(
+            padding: const EdgeInsets.only(right: 10),
+            child: SizedBox(
+                height: 35,
+                width: 70,
+                child: Card(
+                  color: Colors.white,
+                  child: TextButton(
+                    onPressed: () => _signOut(context),
+                    style: TextButton.styleFrom(
+                      padding: EdgeInsets.zero,
+                      minimumSize: const Size(0, 0),
+                    ),
+                    child: const Text(
+                      'Logout',
+                      style: TextStyle(
+                        color: Colors.black,
+                      ),
+                    ),
+                  ),
+                )),
           ),
         ],
       ),
@@ -123,6 +142,7 @@ class _ManagerScreenState extends State<ManagerScreen> {
                           padding: const EdgeInsets.all(8.0),
                           child: Container(
                             decoration: BoxDecoration(
+                              color: Colors.white,
                               border: const Border(
                                 top: BorderSide(color: Colors.black),
                                 left: BorderSide(color: Colors.black),

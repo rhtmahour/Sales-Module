@@ -62,7 +62,7 @@ class _AdminalltaskState extends State<Adminalltask> {
                     decoration: BoxDecoration(
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.white.withOpacity(0.2),
+                          color: Colors.white.withOpacity(0.5),
                           spreadRadius: 1,
                           blurRadius: 8,
                         ),
@@ -79,8 +79,8 @@ class _AdminalltaskState extends State<Adminalltask> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Agent name: ${task['Agent name'] ?? ''}'),
                         Text('Task Number: ${task['Task_no'] ?? ''}'),
+                        Text('Agent name: ${task['Agent name'] ?? ''}'),
                       ],
                     ),
                   ),

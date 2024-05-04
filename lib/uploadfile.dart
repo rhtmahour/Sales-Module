@@ -47,8 +47,13 @@ class FileUploadScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async {
-        Navigator.pop(context); // Go back to ManagerScreen
-        return true;
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const ManagerScreen(),
+          ),
+        );
+        return false;
       },
       child: Scaffold(
         appBar: AppBar(

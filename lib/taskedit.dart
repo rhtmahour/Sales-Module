@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:task_manager/agentdashboard.dart';
 
 // ignore: must_be_immutable
 class EditTask extends StatefulWidget {
@@ -9,12 +8,12 @@ class EditTask extends StatefulWidget {
   var phoneNumber;
 
   EditTask({
-    Key? key,
+    super.key,
     required this.taskNo,
     required this.customerName,
     required this.address,
     required this.phoneNumber,
-  }) : super(key: key);
+  });
 
   final String taskNo;
 

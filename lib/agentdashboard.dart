@@ -43,42 +43,10 @@ class _AgentScreenState extends State<AgentScreen> {
     });
   }
 
-  Future<void> _signOut(BuildContext context) async {
-    return showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Confirmation'),
-          content: const Text('Are you sure you want to sign out?'),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('No'),
-            ),
-            TextButton(
-              onPressed: () async {
-                await FirebaseAuth.instance.signOut();
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const SignUpPage(),
-                  ),
-                );
-              },
-              child: const Text('Yes'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.blue[100],
       appBar: AppBar(
         backgroundColor: Colors.blue,
         centerTitle: true,
@@ -86,13 +54,6 @@ class _AgentScreenState extends State<AgentScreen> {
           "Agent Dashboard",
           style: TextStyle(color: Colors.white),
         ),
-        actions: [
-          IconButton(
-            onPressed: () => _signOut(context),
-            icon: const Icon(Icons.logout),
-            color: Colors.white,
-          ),
-        ],
       ),
       drawer: const Myprofile(),
       body: StreamBuilder<DocumentSnapshot>(
@@ -118,6 +79,7 @@ class _AgentScreenState extends State<AgentScreen> {
                     padding: const EdgeInsets.all(8.0),
                     child: Container(
                       decoration: BoxDecoration(
+                        color: Colors.white,
                         border: const Border(
                           top: BorderSide(color: Colors.black),
                           left: BorderSide(color: Colors.black),
