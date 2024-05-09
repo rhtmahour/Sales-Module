@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:task_manager/SignUpPage.dart';
+import 'package:sales_module/SignUpPage.dart';
 
 class OnboardingPage extends StatelessWidget {
   const OnboardingPage({super.key});

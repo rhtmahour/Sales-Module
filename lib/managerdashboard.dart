@@ -1,13 +1,16 @@
 import 'dart:io'; // Add this import statement to use the File class
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:task_manager/agenttaskform.dart';
-import 'package:task_manager/signuppage.dart';
-import 'package:task_manager/taskdeatilscreen.dart';
-import 'package:task_manager/taskedit.dart';
-import 'package:task_manager/taskform.dart';
-import 'package:task_manager/uploadfile.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:sales_module/agenttaskform.dart';
+import 'package:sales_module/showallagent.dart';
+import 'package:sales_module/signuppage.dart';
+import 'package:sales_module/taskdeatilscreen.dart';
+import 'package:sales_module/taskedit.dart';
+import 'package:sales_module/taskform.dart';
+import 'package:sales_module/uploadfile.dart';
 
 class ManagerScreen extends StatefulWidget {
   final File? file;
@@ -21,7 +24,12 @@ class ManagerScreen extends StatefulWidget {
 }
 
 class _ManagerScreenState extends State<ManagerScreen> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   late Future<List<DocumentSnapshot>> _usersFuture;
+  String userEmail = "";
+  String name = "";
+  String phone = "";
+  String? imagePath;
   String? userName;
   String? userPhone;
   String? _selectedFilter = 'ALL';
@@ -30,6 +38,32 @@ class _ManagerScreenState extends State<ManagerScreen> {
   void initState() {
     super.initState();
     fetchUserData();
+    fetchAgentData();
+  }
+
+  Future<void> fetchAgentData() async {
+    try {
+      final currentUserEmail = FirebaseAuth.instance.currentUser!.email!;
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .where('email', isEqualTo: currentUserEmail)
+          .where('role', isEqualTo: 'MANAGER')
+          .limit(1)
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        final agentData = querySnapshot.docs.first.data();
+        setState(() {
+          name = agentData['name'];
+          userEmail = agentData['email'];
+          phone = agentData['phone'];
+        });
+      } else {
+        print('No document found for current user');
+      }
+    } catch (e) {
+      print('Error fetching agent data: $e');
+    }
   }
 
   Future<void> fetchUserData() async {
@@ -79,10 +113,39 @@ class _ManagerScreenState extends State<ManagerScreen> {
     );
   }
 
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+    if (pickedFile != null) {
+      final File file = File(pickedFile.path);
+
+      try {
+        // Upload the file to Firebase Storage
+        final firebaseStorageRef = FirebaseStorage.instance
+            .ref()
+            .child('profile_images')
+            .child('agent_profile.jpg');
+        await firebaseStorageRef.putFile(file);
+
+        // Get the download URL
+        final String downloadURL = await firebaseStorageRef.getDownloadURL();
+
+        // Update the imagePath with the download URL
+        setState(() {
+          imagePath = downloadURL;
+        });
+      } catch (e) {
+        print('Error uploading image to Firebase Storage: $e');
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.blue[100],
+      key: _scaffoldKey,
       appBar: AppBar(
         backgroundColor: Colors.blue,
         centerTitle: true,
@@ -91,34 +154,106 @@ class _ManagerScreenState extends State<ManagerScreen> {
           style: TextStyle(color: Colors.white),
         ),
         automaticallyImplyLeading: false,
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 10),
-            child: SizedBox(
-                height: 35,
-                width: 70,
-                child: Card(
-                  color: Colors.white,
-                  child: TextButton(
-                    onPressed: () => _signOut(context),
-                    style: TextButton.styleFrom(
-                      padding: EdgeInsets.zero,
-                      minimumSize: const Size(0, 0),
-                    ),
-                    child: const Text(
-                      'Logout',
-                      style: TextStyle(
-                        color: Colors.black,
+        leading: GestureDetector(
+          onTap: () {
+            _scaffoldKey.currentState!.openDrawer(); // Open the drawer
+          },
+          child: const Icon(Icons.menu),
+        ),
+      ),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: <Widget>[
+            SizedBox(
+              height: 350,
+              width: double.maxFinite,
+              child: DrawerHeader(
+                decoration: const BoxDecoration(
+                  color: Colors.blue,
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    GestureDetector(
+                      onTap: _pickImage,
+                      child: Container(
+                        margin: const EdgeInsets.only(bottom: 10),
+                        height: 70,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          image: DecorationImage(
+                            image: imagePath != null
+                                ? Image.file(File(imagePath!)).image
+                                : const AssetImage(
+                                    'assets/images/user_profile.png'),
+                          ),
+                        ),
                       ),
                     ),
+                    Text(
+                      name,
+                      style: const TextStyle(color: Colors.white, fontSize: 20),
+                    ),
+                    Text(
+                      userEmail,
+                      style: const TextStyle(color: Colors.white, fontSize: 15),
+                    ),
+                    Text(
+                      phone,
+                      style: const TextStyle(color: Colors.white, fontSize: 15),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            ListTile(
+              title: const Text('Edit Profile'),
+              onTap: () {
+                // Add your onTap action for the drawer item here
+              },
+            ),
+            const Divider(),
+            ListTile(
+              title: const Text('All Users'),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const ShowAllAgents()),
+                );
+              },
+            ),
+            const SizedBox(
+              height: 300,
+            ),
+            SizedBox(
+              height: 60,
+              child: Card(
+                color: Colors.blue,
+                child: TextButton(
+                  onPressed: () => _signOut(context),
+                  style: TextButton.styleFrom(
+                    padding: EdgeInsets.zero,
+                    minimumSize: const Size(0, 0),
                   ),
-                )),
-          ),
-        ],
+                  child: const Text(
+                    'Logout',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            // Add more ListTile widgets for additional items
+          ],
+        ),
       ),
       body: Column(
         children: [
-          //const SizedBox(height: 20),
           Expanded(
             child: StreamBuilder<DocumentSnapshot>(
               stream: FirebaseFirestore.instance

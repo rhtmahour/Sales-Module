@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:task_manager/admindashboard.dart';
+import 'package:sales_module/admindashboard.dart';
 import 'SignUpPage.dart';
 
 class MemberRegister extends StatefulWidget {
@@ -22,9 +22,9 @@ class _MemberRegisterState extends State<MemberRegister> {
   final TextEditingController passwordController = new TextEditingController();
   final TextEditingController confirmpassController =
       new TextEditingController();
-  final TextEditingController name = new TextEditingController();
+  final TextEditingController nameController = new TextEditingController();
   final TextEditingController emailController = new TextEditingController();
-  final TextEditingController mobile = new TextEditingController();
+  final TextEditingController phoneController = new TextEditingController();
   bool _isObscure = true;
   bool _isObscure2 = true;
   File? file;
@@ -72,7 +72,59 @@ class _MemberRegisterState extends State<MemberRegister> {
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         const SizedBox(
-                          height: 50,
+                          height: 20,
+                        ),
+                        TextFormField(
+                          controller: nameController,
+                          decoration: InputDecoration(
+                            prefixIcon: const Icon(
+                              Icons.person,
+                              color: Colors.blue,
+                            ),
+                            filled: true,
+                            fillColor: Colors.white,
+                            hintText: 'Enter User Name',
+                            enabled: true,
+                            contentPadding: const EdgeInsets.only(
+                                left: 14.0, bottom: 8.0, top: 8.0),
+                            focusedBorder: OutlineInputBorder(
+                              borderSide: new BorderSide(color: Colors.white),
+                              borderRadius: new BorderRadius.circular(10),
+                            ),
+                            enabledBorder: UnderlineInputBorder(
+                              borderSide: new BorderSide(color: Colors.white),
+                              borderRadius: new BorderRadius.circular(10),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(
+                          height: 20,
+                        ),
+                        TextFormField(
+                          controller: phoneController,
+                          decoration: InputDecoration(
+                            prefixIcon: const Icon(
+                              Icons.phone,
+                              color: Colors.blue,
+                            ),
+                            filled: true,
+                            fillColor: Colors.white,
+                            hintText: 'Enter Phone Number',
+                            enabled: true,
+                            contentPadding: const EdgeInsets.only(
+                                left: 14.0, bottom: 8.0, top: 8.0),
+                            focusedBorder: OutlineInputBorder(
+                              borderSide: new BorderSide(color: Colors.white),
+                              borderRadius: new BorderRadius.circular(10),
+                            ),
+                            enabledBorder: UnderlineInputBorder(
+                              borderSide: new BorderSide(color: Colors.white),
+                              borderRadius: new BorderRadius.circular(10),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(
+                          height: 20,
                         ),
                         TextFormField(
                           controller: emailController,
@@ -281,8 +333,12 @@ class _MemberRegisterState extends State<MemberRegister> {
                                 setState(() {
                                   showProgress = true;
                                 });
-                                signUp(emailController.text,
-                                    passwordController.text, role);
+                                signUp(
+                                    nameController.text,
+                                    phoneController.text,
+                                    emailController.text,
+                                    passwordController.text,
+                                    role);
                               },
                               child: Text(
                                 "Register",
@@ -306,12 +362,13 @@ class _MemberRegisterState extends State<MemberRegister> {
     );
   }
 
-  void signUp(String email, String password, String role) async {
+  void signUp(String name, String phone, String email, String password,
+      String role) async {
     if (_formkey.currentState!.validate()) {
       await _auth
           .createUserWithEmailAndPassword(email: email, password: password)
           .then((value) {
-        postDetailsToFirestore(email, role);
+        postDetailsToFirestore(name, phone, email, role);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Registration successful'),
@@ -324,13 +381,30 @@ class _MemberRegisterState extends State<MemberRegister> {
     }
   }
 
-  postDetailsToFirestore(String email, String role) async {
+  postDetailsToFirestore(
+      String name, String phone, String email, String role) async {
     FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
     var user = _auth.currentUser;
     CollectionReference ref = FirebaseFirestore.instance.collection('users');
-    ref.doc(user!.uid).set({'email': emailController.text, 'role': role});
-    Navigator.pushReplacement(
-        context, MaterialPageRoute(builder: (context) => AdminScreen()));
-    //QuerySnapshot querySnapshot = await FirebaseFirestore.instance.collection("user").get();
+    ref
+        .doc(user!.uid)
+        .set({'name': name, 'phone': phone, 'email': email, 'role': role}).then(
+            (value) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Registration successful'),
+          duration: Duration(seconds: 4),
+        ),
+      );
+      Navigator.pushReplacement(context,
+          MaterialPageRoute(builder: (context) => const AdminScreen()));
+    }).catchError((error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to register: $error'),
+          duration: const Duration(seconds: 4),
+        ),
+      );
+    });
   }
 }

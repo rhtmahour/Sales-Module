@@ -1,12 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:task_manager/agenttaskform.dart';
+import 'package:sales_module/agenttaskform.dart';
+import 'package:sales_module/myprofile.dart';
 //import 'package:intl/intl.dart';
-import 'package:task_manager/myprofile.dart';
-import 'package:task_manager/signuppage.dart';
-import 'package:task_manager/taskdeatilscreen.dart';
-import 'package:task_manager/taskedit.dart';
+//import 'package:sales_module/myprofile.dart';
+//import 'package:sales_module/signuppage.dart';
+import 'package:sales_module/taskdeatilscreen.dart';
+import 'package:sales_module/taskedit.dart';
 
 class AgentScreen extends StatefulWidget {
   const AgentScreen({Key? key});
@@ -30,7 +31,7 @@ class _AgentScreenState extends State<AgentScreen> {
 
   Future<void> fetchUserData() async {
     //String statusdateAndTime = DateFormat('dd-MM-yyyy HH:mm:ss').format(DateTime.now());
-    String email = FirebaseAuth.instance.currentUser!.email!;
+    String email = FirebaseAuth.instance.currentUser?.email ?? "";
     DocumentSnapshot userData = await FirebaseFirestore.instance
         .collection('users')
         .where('email', isEqualTo: email)

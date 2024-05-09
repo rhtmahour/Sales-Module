@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:csv/csv.dart';
 import 'package:provider/provider.dart';
-import 'package:task_manager/managerdashboard.dart';
+import 'package:sales_module/managerdashboard.dart';
+import 'package:path_provider/path_provider.dart';
 
 class CsvDataProvider extends ChangeNotifier {
   File? _file;
@@ -25,7 +26,14 @@ class CsvDataProvider extends ChangeNotifier {
       CsvToListConverter converter = const CsvToListConverter();
       List<List<dynamic>> csvData = converter.convert(csvString);
 
-      _file = newFile;
+      // Save the file to permanent storage
+      Directory appDocDir = await getApplicationDocumentsDirectory();
+      String appDocPath = appDocDir.path;
+      String newFilePath = '$appDocPath/${result.files.single.name}';
+      File newFilePermanent = File(newFilePath);
+      await newFile.copy(newFilePermanent.path);
+
+      _file = newFilePermanent;
       _csvData = csvData;
       _errorMessage = null; // Reset error message
     } else {
@@ -40,9 +48,8 @@ class CsvDataProvider extends ChangeNotifier {
 }
 
 class FileUploadScreen extends StatelessWidget {
-  const FileUploadScreen({super.key});
+  const FileUploadScreen({Key? key});
 
-  @override
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -62,60 +69,65 @@ class FileUploadScreen extends StatelessWidget {
         body: Center(
           child: Consumer<CsvDataProvider>(
             builder: (context, provider, _) {
-              return Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  ElevatedButton(
-                    onPressed: () async {
-                      await provider.uploadFile();
-                      // Navigate to ManagerScreen with uploaded CSV data
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ManagerScreen(
-                            file: provider.file,
-                            csvData: provider.csvData,
+              return SingleChildScrollView(
+                // Wrap the Column with SingleChildScrollView
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    ElevatedButton(
+                      onPressed: () async {
+                        await provider.uploadFile();
+                        // Navigate to ManagerScreen with uploaded CSV data
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ManagerScreen(
+                              file: provider.file,
+                              csvData: provider.csvData,
+                            ),
                           ),
-                        ),
-                      );
-                    },
-                    child: const Text('Upload CSV File'),
-                  ),
-                  const SizedBox(height: 20),
-                  if (provider.file != null)
-                    Text('File Name: ${provider.file!.path}')
-                  else
-                    const Text('No file selected'),
-                  const SizedBox(height: 20),
-                  if (provider.errorMessage != null)
-                    Text(
-                      provider.errorMessage!,
-                      style: const TextStyle(color: Colors.red),
+                        );
+                      },
+                      child: const Text('Upload CSV File'),
                     ),
-                  if (provider.csvData != null)
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: DataTable(
-                        columns: provider.csvData![0]
-                            .map<DataColumn>((column) =>
-                                DataColumn(label: Text(column.toString())))
-                            .toList(),
-                        rows: provider.csvData!.sublist(1).map<DataRow>((row) {
-                          return DataRow(
-                            cells: row
-                                .map<DataCell>(
-                                    (cell) => DataCell(Text(cell.toString())))
-                                .toList(),
-                          );
-                        }).toList(),
+                    const SizedBox(height: 20),
+                    if (provider.file != null)
+                      Text('File Name: ${provider.file!.path}')
+                    else
+                      const Text('No file selected'),
+                    const SizedBox(height: 20),
+                    if (provider.errorMessage != null)
+                      Text(
+                        provider.errorMessage!,
+                        style: const TextStyle(color: Colors.red),
                       ),
-                    ),
-                  if (provider.file != null && provider.errorMessage == null)
-                    const Text(
-                      'File uploaded successfully',
-                      style: TextStyle(color: Colors.green),
-                    ),
-                ],
+                    if (provider.csvData != null)
+                      SingleChildScrollView(
+                        // Wrap the DataTable with SingleChildScrollView
+                        scrollDirection: Axis.horizontal,
+                        child: DataTable(
+                          columns: provider.csvData![0]
+                              .map<DataColumn>((column) =>
+                                  DataColumn(label: Text(column.toString())))
+                              .toList(),
+                          rows:
+                              provider.csvData!.sublist(1).map<DataRow>((row) {
+                            return DataRow(
+                              cells: row
+                                  .map<DataCell>(
+                                      (cell) => DataCell(Text(cell.toString())))
+                                  .toList(),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    if (provider.file != null && provider.errorMessage == null)
+                      const Text(
+                        'File uploaded successfully',
+                        style: TextStyle(color: Colors.green),
+                      ),
+                  ],
+                ),
               );
             },
           ),

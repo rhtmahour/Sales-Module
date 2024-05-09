@@ -1,10 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:task_manager/adminalltask.dart';
-import 'package:task_manager/memberregister.dart';
-import 'package:task_manager/signuppage.dart';
-import 'package:task_manager/userdetail.dart';
+import 'package:sales_module/adminalltask.dart';
+import 'package:sales_module/memberregister.dart';
+import 'package:sales_module/signuppage.dart';
+import 'package:sales_module/userdetail.dart';
 
 class AdminScreen extends StatelessWidget {
   const AdminScreen({Key? key});
@@ -126,7 +126,13 @@ class AdminScreen extends StatelessWidget {
                             },
                           );
                         } else {
-                          print('No task found for Task ${index + 1}');
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content:
+                                  Text('No task found for Task ${index + 1}'),
+                              duration: const Duration(seconds: 3),
+                            ),
+                          );
                         }
                       } catch (e) {
                         print('Error: $e');
@@ -249,63 +255,99 @@ class AdminScreen extends StatelessWidget {
                               ),
                               PopupMenuButton<PopupMenuEntry<dynamic>>(
                                 surfaceTintColor: Colors.white,
-                                itemBuilder: (context) => [
-                                  PopupMenuItem(
-                                    child: ListTile(
-                                      title: const Text('Edit'),
-                                      onTap: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) =>
-                                                EditProfilePage(
-                                              userId: user.id,
-                                              userEmail: user['email'] ?? '',
-                                              userRole: user['role'] ?? '',
-                                            ),
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                  ),
-                                  const PopupMenuDivider(),
-                                  PopupMenuItem(
-                                    child: ListTile(
-                                      title: const Text('Delete'),
-                                      onTap: () {
-                                        showDialog(
-                                          context: context,
-                                          builder: (BuildContext context) {
-                                            return AlertDialog(
-                                              title: const Text("Confirmation"),
-                                              content: const Text(
-                                                  "Are you sure you want to delete this User?"),
-                                              actions: <Widget>[
-                                                TextButton(
-                                                  onPressed: () {
-                                                    Navigator.of(context).pop();
-                                                  },
-                                                  child: const Text("No"),
-                                                ),
-                                                TextButton(
-                                                  onPressed: () async {
-                                                    await FirebaseFirestore
-                                                        .instance
-                                                        .collection('users')
-                                                        .doc(user.id)
-                                                        .delete();
-                                                    Navigator.of(context).pop();
-                                                  },
-                                                  child: const Text("Yes"),
-                                                ),
-                                              ],
+                                itemBuilder: (context) {
+                                  // Check if the user's role is 'ADMIN'
+                                  if (user['role'] == 'ADMIN') {
+                                    // If role is 'ADMIN', return only the 'Edit' option
+                                    return [
+                                      PopupMenuItem(
+                                        child: ListTile(
+                                          title: const Text('Edit'),
+                                          onTap: () {
+                                            Navigator.pop(
+                                                context); // Close the current PopupMenu
+                                            showDialog(
+                                              context: context,
+                                              builder: (BuildContext context) {
+                                                return EditProfilePage(
+                                                  userId: user.id,
+                                                  userEmail:
+                                                      user['email'] ?? '',
+                                                  userRole: user['role'] ?? '',
+                                                );
+                                              },
                                             );
                                           },
-                                        );
-                                      },
-                                    ),
-                                  ),
-                                ],
+                                        ),
+                                      ),
+                                    ];
+                                  } else {
+                                    // If role is not 'ADMIN', return both 'Edit' and 'Delete' options
+                                    return [
+                                      PopupMenuItem(
+                                        child: ListTile(
+                                          title: const Text('Edit'),
+                                          onTap: () {
+                                            Navigator.pop(
+                                                context); // Close the current PopupMenu
+                                            showDialog(
+                                              context: context,
+                                              builder: (BuildContext context) {
+                                                return EditProfilePage(
+                                                  userId: user.id,
+                                                  userEmail:
+                                                      user['email'] ?? '',
+                                                  userRole: user['role'] ?? '',
+                                                );
+                                              },
+                                            );
+                                          },
+                                        ),
+                                      ),
+                                      const PopupMenuDivider(),
+                                      PopupMenuItem(
+                                        child: ListTile(
+                                          title: const Text('Delete'),
+                                          onTap: () {
+                                            showDialog(
+                                              context: context,
+                                              builder: (BuildContext context) {
+                                                return AlertDialog(
+                                                  title: const Text(
+                                                      "Confirmation"),
+                                                  content: const Text(
+                                                    "Are you sure you want to delete this User?",
+                                                  ),
+                                                  actions: <Widget>[
+                                                    TextButton(
+                                                      onPressed: () {
+                                                        Navigator.of(context)
+                                                            .pop();
+                                                      },
+                                                      child: const Text("No"),
+                                                    ),
+                                                    TextButton(
+                                                      onPressed: () async {
+                                                        await FirebaseFirestore
+                                                            .instance
+                                                            .collection('users')
+                                                            .doc(user.id)
+                                                            .delete();
+                                                        Navigator.of(context)
+                                                            .pop();
+                                                      },
+                                                      child: const Text("Yes"),
+                                                    ),
+                                                  ],
+                                                );
+                                              },
+                                            );
+                                          },
+                                        ),
+                                      ),
+                                    ];
+                                  }
+                                },
                               ),
                             ],
                           ),

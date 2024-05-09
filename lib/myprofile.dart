@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:task_manager/myheaderdrawer.dart';
-import 'package:task_manager/signuppage.dart';
+import 'package:sales_module/myheaderdrawer.dart';
+import 'package:sales_module/signuppage.dart';
 
 class Myprofile extends StatefulWidget {
   const Myprofile({super.key});

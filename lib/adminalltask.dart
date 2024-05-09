@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:task_manager/admindashboard.dart';
-import 'package:task_manager/taskdeatilscreen.dart';
+import 'package:sales_module/admindashboard.dart';
+import 'package:sales_module/taskdeatilscreen.dart';
 //import 'package:task_manager/userdetail.dart';
 
 class Adminalltask extends StatefulWidget {

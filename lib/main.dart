@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
-import 'package:task_manager/uploadfile.dart';
+import 'package:sales_module/uploadfile.dart';
 import 'firebase_options.dart';
 //import 'file_upload_screen.dart'; // Assuming this is where your FileUploadScreen is defined
 //import 'csv_data_provider.dart'; // Assuming this is where your CsvDataProvider is defined
-import 'package:task_manager/onboardingpage.dart';
+import 'package:sales_module/onboardingpage.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
