@@ -515,7 +515,8 @@ class _ManagerScreenState extends State<ManagerScreen> {
                           );
                         },
                         shape: RoundedRectangleBorder(
-                          side: const BorderSide(color: Colors.black),
+                          side: const BorderSide(
+                              color: Color.fromARGB(255, 104, 45, 45)),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: const Text(

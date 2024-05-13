@@ -106,7 +106,7 @@ class _TaskFormState extends State<TaskForm> {
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async {
-        Navigator.pushReplacement(
+        Navigator.push(
           context,
           MaterialPageRoute(
             builder: (context) => const ManagerScreen(),

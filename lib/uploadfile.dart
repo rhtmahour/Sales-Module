@@ -47,9 +47,14 @@ class CsvDataProvider extends ChangeNotifier {
   }
 }
 
-class FileUploadScreen extends StatelessWidget {
+class FileUploadScreen extends StatefulWidget {
   const FileUploadScreen({Key? key});
 
+  @override
+  State<FileUploadScreen> createState() => _FileUploadScreenState();
+}
+
+class _FileUploadScreenState extends State<FileUploadScreen> {
   @override
   Widget build(BuildContext context) {
     return WillPopScope(

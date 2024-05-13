@@ -50,7 +50,27 @@ class _MyprofileState extends State<Myprofile> {
       body: Column(
         children: [
           const MyHeaderDrawer(),
-          const Spacer(), // Added Spacer widget
+          ListTile(
+            title: const Text(
+              'Edit Profile',
+              style: TextStyle(fontWeight: FontWeight.w500),
+            ),
+            onTap: () {
+              //Ontap Function
+            },
+          ),
+          const Divider(),
+          ListTile(
+            title: const Text(
+              'Settings',
+              style: TextStyle(fontWeight: FontWeight.w500),
+            ),
+            onTap: () {
+              // onTap function
+            },
+          ),
+          const Divider(),
+          const Spacer(),
           SizedBox(
             height: 60,
             width: 200,

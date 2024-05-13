@@ -114,14 +114,25 @@ class _MemberRegisterState extends State<MemberRegister> {
                             contentPadding: const EdgeInsets.only(
                                 left: 14.0, bottom: 8.0, top: 8.0),
                             focusedBorder: OutlineInputBorder(
-                              borderSide: new BorderSide(color: Colors.white),
-                              borderRadius: new BorderRadius.circular(10),
+                              borderSide: const BorderSide(color: Colors.white),
+                              borderRadius: BorderRadius.circular(10),
                             ),
                             enabledBorder: UnderlineInputBorder(
-                              borderSide: new BorderSide(color: Colors.white),
-                              borderRadius: new BorderRadius.circular(10),
+                              borderSide: const BorderSide(color: Colors.white),
+                              borderRadius: BorderRadius.circular(10),
                             ),
                           ),
+                          onChanged: (value) {
+                            if (value.length > 10) {
+                              // Show message that number exceeds 10 digits
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                      'Phone number should not exceed 10 digits'),
+                                ),
+                              );
+                            }
+                          },
                         ),
                         const SizedBox(
                           height: 20,
@@ -135,7 +146,7 @@ class _MemberRegisterState extends State<MemberRegister> {
                             ),
                             filled: true,
                             fillColor: Colors.white,
-                            hintText: 'Email',
+                            hintText: 'rohan@gmail.com',
                             enabled: true,
                             contentPadding: const EdgeInsets.only(
                                 left: 14.0, bottom: 8.0, top: 8.0),

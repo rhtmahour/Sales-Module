@@ -217,7 +217,7 @@ class _SignUpPageState extends State<SignUpPage> {
                         borderSide:
                             BorderSide(color: Theme.of(context).primaryColor),
                       ),
-                      hintText: "Enter Email",
+                      hintText: "rohan@gmail.com",
                       prefixIcon: const Icon(
                         Icons.mail,
                         color: Colors.blue,
