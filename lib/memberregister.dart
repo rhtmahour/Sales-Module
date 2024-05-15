@@ -49,7 +49,7 @@ class _MemberRegisterState extends State<MemberRegister> {
           onPressed: () {
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (context) => const AdminScreen()),
+              MaterialPageRoute(builder: (context) => AdminScreen()),
             );
           },
         ),
@@ -407,8 +407,8 @@ class _MemberRegisterState extends State<MemberRegister> {
           duration: Duration(seconds: 4),
         ),
       );
-      Navigator.pushReplacement(context,
-          MaterialPageRoute(builder: (context) => const AdminScreen()));
+      Navigator.pushReplacement(
+          context, MaterialPageRoute(builder: (context) => AdminScreen()));
     }).catchError((error) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

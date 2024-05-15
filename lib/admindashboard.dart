@@ -1,13 +1,63 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:sales_module/adminalltask.dart';
 import 'package:sales_module/memberregister.dart';
 import 'package:sales_module/signuppage.dart';
 import 'package:sales_module/userdetail.dart';
 
-class AdminScreen extends StatelessWidget {
+class AdminScreen extends StatefulWidget {
   const AdminScreen({Key? key});
+
+  @override
+  State<AdminScreen> createState() => _AdminScreenState();
+}
+
+class _AdminScreenState extends State<AdminScreen> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  String userEmail = "";
+
+  String name = "";
+
+  String phone = "";
+
+  String? imagePath;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchAgentData();
+  }
+
+  Future<void> fetchAgentData() async {
+    try {
+      final currentUserEmail = FirebaseAuth.instance.currentUser!.email!;
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .where('email', isEqualTo: currentUserEmail)
+          .where('role', isEqualTo: 'ADMIN')
+          .limit(1)
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        final agentData = querySnapshot.docs.first.data();
+        setState(() {
+          name = agentData['name'];
+          userEmail = agentData['email'];
+          phone = agentData['phone'];
+        });
+      } else {
+        print('No document found for current user');
+      }
+    } catch (e) {
+      print('Error fetching agent data: $e');
+    }
+  }
 
   Future<void> _signOut(BuildContext context) async {
     return showDialog<void>(
@@ -42,9 +92,38 @@ class AdminScreen extends StatelessWidget {
     );
   }
 
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+    if (pickedFile != null) {
+      final File file = File(pickedFile.path);
+
+      try {
+        // Upload the file to Firebase Storage
+        final firebaseStorageRef = FirebaseStorage.instance
+            .ref()
+            .child('profile_images')
+            .child('agent_profile.jpg');
+        await firebaseStorageRef.putFile(file);
+
+        // Get the download URL
+        final String downloadURL = await firebaseStorageRef.getDownloadURL();
+
+        // Update the imagePath with the download URL
+        setState(() {
+          imagePath = downloadURL;
+        });
+      } catch (e) {
+        print('Error uploading image to Firebase Storage: $e');
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: Colors.blue[100],
       appBar: AppBar(
         backgroundColor: Colors.blue,
@@ -54,30 +133,99 @@ class AdminScreen extends StatelessWidget {
           style: TextStyle(color: Colors.white),
         ),
         automaticallyImplyLeading: false,
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 10),
-            child: SizedBox(
-                height: 35,
-                width: 70,
-                child: Card(
-                  color: Colors.white,
-                  child: TextButton(
-                    onPressed: () => _signOut(context),
-                    style: TextButton.styleFrom(
-                      padding: EdgeInsets.zero,
-                      minimumSize: const Size(0, 0),
-                    ),
-                    child: const Text(
-                      'Logout',
-                      style: TextStyle(
-                        color: Colors.black,
+        leading: IconButton(
+          icon: const Icon(Icons.menu),
+          onPressed: () {
+            if (_scaffoldKey.currentState != null) {
+              _scaffoldKey.currentState!.openDrawer();
+            }
+          },
+        ),
+      ),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: <Widget>[
+            SizedBox(
+              height: 350,
+              width: double.maxFinite,
+              child: DrawerHeader(
+                decoration: const BoxDecoration(
+                  color: Colors.blue,
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    GestureDetector(
+                      onTap: _pickImage,
+                      child: Container(
+                        margin: const EdgeInsets.only(bottom: 10),
+                        height: 70,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          image: DecorationImage(
+                            image: imagePath != null
+                                ? Image.file(File(imagePath!)).image
+                                : const AssetImage(
+                                    'assets/images/user_profile.png'),
+                          ),
+                        ),
                       ),
                     ),
+                    Text(
+                      name,
+                      style: const TextStyle(color: Colors.white, fontSize: 20),
+                    ),
+                    Text(
+                      userEmail,
+                      style: const TextStyle(color: Colors.white, fontSize: 15),
+                    ),
+                    Text(
+                      phone,
+                      style: const TextStyle(color: Colors.white, fontSize: 15),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            ListTile(
+              title: const Text('Edit Profile'),
+              onTap: () {
+                // Add your onTap action for the drawer item here
+              },
+            ),
+            const Divider(),
+            ListTile(
+              title: const Text('Settings'),
+              onTap: () {},
+            ),
+            const SizedBox(
+              height: 300,
+            ),
+            SizedBox(
+              height: 60,
+              child: Card(
+                color: Colors.blue,
+                child: TextButton(
+                  onPressed: () => _signOut(context),
+                  style: TextButton.styleFrom(
+                    padding: EdgeInsets.zero,
+                    minimumSize: const Size(0, 0),
                   ),
-                )),
-          ),
-        ],
+                  child: const Text(
+                    'Logout',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            // Add more ListTile widgets for additional items
+          ],
+        ),
       ),
       body: Column(
         children: [
