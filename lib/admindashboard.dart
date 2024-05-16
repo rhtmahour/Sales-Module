@@ -27,6 +27,7 @@ class _AdminScreenState extends State<AdminScreen> {
 
   String phone = "";
   File? image;
+  File? pickedImageFile;
 
   String? imagePath;
 
@@ -100,11 +101,8 @@ class _AdminScreenState extends State<AdminScreen> {
           await ImagePicker().pickImage(source: ImageSource.gallery);
       if (pickedImage == null) return;
 
-      final imageTemp = File(pickedImage.path);
       setState(() {
-        image = imageTemp;
-        imagePath =
-            pickedImage.path; // Update imagePath with the picked image path
+        pickedImageFile = File(pickedImage.path);
       });
     } on PlatformException catch (e) {
       print('Failed to pick image: $e');
@@ -149,21 +147,16 @@ class _AdminScreenState extends State<AdminScreen> {
                   children: [
                     GestureDetector(
                       onTap: pickImage,
-                      child: Container(
-                        margin: const EdgeInsets.only(bottom: 10),
-                        height: 70,
-                        width: 70,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          image: DecorationImage(
-                            image: imagePath != null
-                                ? FileImage(File(imagePath!))
-                                : const AssetImage(
-                                        'assets/images/user_profile.png')
-                                    as ImageProvider,
-                            fit: BoxFit.cover,
-                          ),
-                        ),
+                      child: CircleAvatar(
+                        radius: 35,
+                        backgroundImage: pickedImageFile != null
+                            ? FileImage(pickedImageFile!)
+                            : null,
+                        child: pickedImageFile == null
+                            ? Icon(Icons.camera_alt,
+                                size: 40, color: Colors.grey[600])
+                            : null,
+                        backgroundColor: Colors.grey[200],
                       ),
                     ),
                     Text(

@@ -31,6 +31,7 @@ class _ManagerScreenState extends State<ManagerScreen> {
   String name = "";
   String phone = "";
   String? imagePath;
+  File? pickedImageFile;
   String? userName;
   String? userPhone;
   File? image;
@@ -115,45 +116,14 @@ class _ManagerScreenState extends State<ManagerScreen> {
     );
   }
 
-  Future<void> _pickImage() async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-
-    if (pickedFile != null) {
-      final File file = File(pickedFile.path);
-
-      try {
-        // Upload the file to Firebase Storage
-        final firebaseStorageRef = FirebaseStorage.instance
-            .ref()
-            .child('profile_images')
-            .child('agent_profile.jpg');
-        await firebaseStorageRef.putFile(file);
-
-        // Get the download URL
-        final String downloadURL = await firebaseStorageRef.getDownloadURL();
-
-        // Update the imagePath with the download URL
-        setState(() {
-          imagePath = downloadURL;
-        });
-      } catch (e) {
-        print('Error uploading image to Firebase Storage: $e');
-      }
-    }
-  }
-
   Future<void> pickImage() async {
     try {
       final pickedImage =
           await ImagePicker().pickImage(source: ImageSource.gallery);
       if (pickedImage == null) return;
 
-      final imageTemp = File(pickedImage.path);
       setState(() {
-        image = imageTemp;
-        imagePath =
-            pickedImage.path; // Update imagePath with the picked image path
+        pickedImageFile = File(pickedImage.path);
       });
     } on PlatformException catch (e) {
       print('Failed to pick image: $e');
@@ -196,21 +166,16 @@ class _ManagerScreenState extends State<ManagerScreen> {
                   children: [
                     GestureDetector(
                       onTap: pickImage,
-                      child: Container(
-                        margin: const EdgeInsets.only(bottom: 10),
-                        height: 70,
-                        width: 70,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          image: DecorationImage(
-                            image: imagePath != null
-                                ? FileImage(File(imagePath!))
-                                : const AssetImage(
-                                        'assets/images/user_profile.png')
-                                    as ImageProvider,
-                            fit: BoxFit.cover,
-                          ),
-                        ),
+                      child: CircleAvatar(
+                        radius: 35,
+                        backgroundImage: pickedImageFile != null
+                            ? FileImage(pickedImageFile!)
+                            : null,
+                        child: pickedImageFile == null
+                            ? Icon(Icons.camera_alt,
+                                size: 40, color: Colors.grey[600])
+                            : null,
+                        backgroundColor: Colors.grey[200],
                       ),
                     ),
                     Text(
