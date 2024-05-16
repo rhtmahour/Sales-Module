@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:sales_module/adminalltask.dart';
 import 'package:sales_module/memberregister.dart';
@@ -25,6 +26,7 @@ class _AdminScreenState extends State<AdminScreen> {
   String name = "";
 
   String phone = "";
+  File? image;
 
   String? imagePath;
 
@@ -92,31 +94,20 @@ class _AdminScreenState extends State<AdminScreen> {
     );
   }
 
-  Future<void> _pickImage() async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+  Future<void> pickImage() async {
+    try {
+      final pickedImage =
+          await ImagePicker().pickImage(source: ImageSource.gallery);
+      if (pickedImage == null) return;
 
-    if (pickedFile != null) {
-      final File file = File(pickedFile.path);
-
-      try {
-        // Upload the file to Firebase Storage
-        final firebaseStorageRef = FirebaseStorage.instance
-            .ref()
-            .child('profile_images')
-            .child('agent_profile.jpg');
-        await firebaseStorageRef.putFile(file);
-
-        // Get the download URL
-        final String downloadURL = await firebaseStorageRef.getDownloadURL();
-
-        // Update the imagePath with the download URL
-        setState(() {
-          imagePath = downloadURL;
-        });
-      } catch (e) {
-        print('Error uploading image to Firebase Storage: $e');
-      }
+      final imageTemp = File(pickedImage.path);
+      setState(() {
+        image = imageTemp;
+        imagePath =
+            pickedImage.path; // Update imagePath with the picked image path
+      });
+    } on PlatformException catch (e) {
+      print('Failed to pick image: $e');
     }
   }
 
@@ -157,17 +148,20 @@ class _AdminScreenState extends State<AdminScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     GestureDetector(
-                      onTap: _pickImage,
+                      onTap: pickImage,
                       child: Container(
                         margin: const EdgeInsets.only(bottom: 10),
                         height: 70,
+                        width: 70,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           image: DecorationImage(
                             image: imagePath != null
-                                ? Image.file(File(imagePath!)).image
+                                ? FileImage(File(imagePath!))
                                 : const AssetImage(
-                                    'assets/images/user_profile.png'),
+                                        'assets/images/user_profile.png')
+                                    as ImageProvider,
+                            fit: BoxFit.cover,
                           ),
                         ),
                       ),
@@ -190,14 +184,20 @@ class _AdminScreenState extends State<AdminScreen> {
             ),
 
             ListTile(
-              title: const Text('Edit Profile'),
+              title: const Text(
+                'Edit Profile',
+                style: TextStyle(fontWeight: FontWeight.w500),
+              ),
               onTap: () {
                 // Add your onTap action for the drawer item here
               },
             ),
             const Divider(),
             ListTile(
-              title: const Text('Settings'),
+              title: const Text(
+                'Settings',
+                style: TextStyle(fontWeight: FontWeight.w500),
+              ),
               onTap: () {},
             ),
             const SizedBox(

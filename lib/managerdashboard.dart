@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:sales_module/agenttaskform.dart';
 import 'package:sales_module/showallagent.dart';
@@ -32,6 +33,7 @@ class _ManagerScreenState extends State<ManagerScreen> {
   String? imagePath;
   String? userName;
   String? userPhone;
+  File? image;
   String? _selectedFilter = 'ALL';
 
   @override
@@ -141,6 +143,23 @@ class _ManagerScreenState extends State<ManagerScreen> {
     }
   }
 
+  Future<void> pickImage() async {
+    try {
+      final pickedImage =
+          await ImagePicker().pickImage(source: ImageSource.gallery);
+      if (pickedImage == null) return;
+
+      final imageTemp = File(pickedImage.path);
+      setState(() {
+        image = imageTemp;
+        imagePath =
+            pickedImage.path; // Update imagePath with the picked image path
+      });
+    } on PlatformException catch (e) {
+      print('Failed to pick image: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -176,17 +195,20 @@ class _ManagerScreenState extends State<ManagerScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     GestureDetector(
-                      onTap: _pickImage,
+                      onTap: pickImage,
                       child: Container(
                         margin: const EdgeInsets.only(bottom: 10),
                         height: 70,
+                        width: 70,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           image: DecorationImage(
                             image: imagePath != null
-                                ? Image.file(File(imagePath!)).image
+                                ? FileImage(File(imagePath!))
                                 : const AssetImage(
-                                    'assets/images/user_profile.png'),
+                                        'assets/images/user_profile.png')
+                                    as ImageProvider,
+                            fit: BoxFit.cover,
                           ),
                         ),
                       ),
@@ -209,14 +231,20 @@ class _ManagerScreenState extends State<ManagerScreen> {
             ),
 
             ListTile(
-              title: const Text('Edit Profile'),
+              title: const Text(
+                'Edit Profile',
+                style: TextStyle(fontWeight: FontWeight.w500),
+              ),
               onTap: () {
                 // Add your onTap action for the drawer item here
               },
             ),
             const Divider(),
             ListTile(
-              title: const Text('All Users'),
+              title: const Text(
+                'All Users',
+                style: TextStyle(fontWeight: FontWeight.w500),
+              ),
               onTap: () {
                 Navigator.push(
                   context,
