@@ -44,7 +44,7 @@ class _AgentScreenState extends State<AgentScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.blue[100],
+      backgroundColor: Colors.blue[50],
       appBar: AppBar(
         backgroundColor: Colors.blue,
         centerTitle: true,

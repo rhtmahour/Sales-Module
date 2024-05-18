@@ -15,6 +15,7 @@ class _AdminalltaskState extends State<Adminalltask> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.blue[50],
       appBar: AppBar(
         backgroundColor: Colors.blue,
         centerTitle: true,
@@ -28,7 +29,7 @@ class _AdminalltaskState extends State<Adminalltask> {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                builder: (context) => AdminScreen(),
+                builder: (context) => const AdminScreen(),
               ),
             );
           },
@@ -60,13 +61,7 @@ class _AdminalltaskState extends State<Adminalltask> {
                   },
                   child: Container(
                     decoration: BoxDecoration(
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.blue.withOpacity(0.3),
-                          spreadRadius: 1,
-                          blurRadius: 8,
-                        ),
-                      ],
+                      color: Colors.grey[100],
                       border: Border.all(color: Colors.black),
                       borderRadius: BorderRadius.circular(10),
                     ),

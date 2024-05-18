@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:sales_module/SignUpPage.dart';
+//import 'package:sales_module/SignUpPage.dart';
+//import 'package:flutter_animated_button/flutter_animated_button.dart';
+import 'package:sales_module/signuppage.dart';
 
 class OnboardingPage extends StatelessWidget {
   const OnboardingPage({super.key});
@@ -35,28 +37,67 @@ class OnboardingPage extends StatelessWidget {
             const SizedBox(
               height: 50,
             ),
-            MaterialButton(
-              minWidth: 200,
-              height: 50,
-              color: Colors.red[300],
-              onPressed: () {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const SignUpPage()));
-              },
-              shape: RoundedRectangleBorder(
-                  side: const BorderSide(color: Colors.blue),
-                  borderRadius: BorderRadius.circular(50)),
-              child: const Text(
-                "Start",
-                style: TextStyle(
-                    fontWeight: FontWeight.w400,
-                    fontSize: 22,
-                    color: Colors.white),
+            Center(
+              child: PrettyFuzzyButton(
+                text: 'Start',
+                onPressed: () {
+                  // Add your onPressed action here
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const SignUpPage()));
+                },
               ),
-            )
+            ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class PrettyFuzzyButton extends StatelessWidget {
+  final String text;
+  final VoidCallback onPressed;
+
+  const PrettyFuzzyButton({required this.text, required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 200,
+      margin: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(30.0),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.2),
+            spreadRadius: 3,
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+        gradient: const LinearGradient(
+          colors: [Colors.red, Colors.yellow],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(30.0),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 14.0, horizontal: 28.0),
+          child: Center(
+            child: Text(
+              text,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 20.0,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
         ),
       ),
     );

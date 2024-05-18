@@ -133,7 +133,7 @@ class _ManagerScreenState extends State<ManagerScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.blue[100],
+      backgroundColor: Colors.blue[50],
       key: _scaffoldKey,
       appBar: AppBar(
         backgroundColor: Colors.blue,
@@ -508,8 +508,7 @@ class _ManagerScreenState extends State<ManagerScreen> {
                           );
                         },
                         shape: RoundedRectangleBorder(
-                          side: const BorderSide(
-                              color: Color.fromARGB(255, 104, 45, 45)),
+                          side: const BorderSide(color: Colors.black),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: const Text(

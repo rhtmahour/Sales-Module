@@ -289,7 +289,7 @@ class _AdminScreenState extends State<AdminScreen> {
                         left: 20,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.grey[200],
+                        color: Colors.grey[100],
                         borderRadius: BorderRadius.circular(10),
                         boxShadow: [
                           BoxShadow(
@@ -322,7 +322,7 @@ class _AdminScreenState extends State<AdminScreen> {
                       left: 20,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.grey[200],
+                      color: Colors.grey[100],
                       borderRadius: BorderRadius.circular(10),
                       boxShadow: [
                         BoxShadow(
@@ -368,7 +368,7 @@ class _AdminScreenState extends State<AdminScreen> {
                         },
                         child: Container(
                           decoration: BoxDecoration(
-                            color: Colors.grey[200],
+                            color: Colors.grey[100],
                             boxShadow: [
                               BoxShadow(
                                 color: Colors.white.withOpacity(0.2),

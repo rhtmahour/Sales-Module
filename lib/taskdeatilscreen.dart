@@ -16,7 +16,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.blue[100],
+      backgroundColor: Colors.blue[50],
       appBar: AppBar(
         centerTitle: true,
         backgroundColor: Colors.blue,

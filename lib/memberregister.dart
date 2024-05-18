@@ -49,7 +49,7 @@ class _MemberRegisterState extends State<MemberRegister> {
           onPressed: () {
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (context) => AdminScreen()),
+              MaterialPageRoute(builder: (context) => const AdminScreen()),
             );
           },
         ),
